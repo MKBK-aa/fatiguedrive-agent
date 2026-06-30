@@ -9,7 +9,6 @@ fatiguedrive-agent/
 ├── index.html
 ├── style.css
 ├── script.js
-├── DESIGN.md
 ```
 
 ## 本地运行
