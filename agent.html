@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FatigueDrive-Agent</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">AI4S Final Project</p>
+        <h1>FatigueDrive-Agent</h1>
+        <p class="subtitle">基于 Qwen-VL 的疲劳驾驶多模态识别智能体</p>
+      </div>
+      <div class="status-strip" aria-label="系统能力">
+        <span>LLM</span>
+        <span>视觉理解</span>
+        <span>规则评分</span>
+        <span>安全报告</span>
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="疲劳驾驶识别工作台">
+      <form class="panel control-panel" id="analysisForm">
+        <div class="panel-head">
+          <div>
+            <p class="section-kicker">Input</p>
+            <h2>分析设置</h2>
+          </div>
+          <button type="button" class="icon-button" id="resetBtn" title="清空输入">
+            <i data-lucide="rotate-ccw"></i>
+          </button>
+        </div>
+
+        <label for="apiKey">阿里云百炼 API Key</label>
+        <input id="apiKey" name="apiKey" type="password" autocomplete="off" placeholder="sk-ws... / sk-... 仅在本次浏览器请求中使用" />
+        <p class="hint">API Key 不会写入代码，也不会保存到本项目文件中。</p>
+
+        <label for="modelName">视觉模型</label>
+        <select id="modelName" name="modelName">
+          <option value="qwen-vl-plus">qwen-vl-plus</option>
+          <option value="qwen-vl-max">qwen-vl-max</option>
+          <option value="qwen2.5-vl-72b-instruct">qwen2.5-vl-72b-instruct</option>
+          <option value="custom">自定义模型名称</option>
+        </select>
+        <input id="customModel" name="customModel" class="hidden" type="text" placeholder="例如：qwen3-vl-plus" />
+
+        <label for="imageInput">驾驶员画面</label>
+        <div class="drop-zone" id="dropZone">
+          <input id="imageInput" name="imageInput" type="file" accept="image/png,image/jpeg,image/webp" />
+          <div>
+            <i data-lucide="image-up"></i>
+            <strong>上传驾驶员图片</strong>
+            <span>支持 JPG、PNG、WEBP，建议画面包含面部、头部和上半身姿态。</span>
+          </div>
+        </div>
+
+        <label for="sceneContext">驾驶场景说明</label>
+        <textarea id="sceneContext" name="sceneContext" placeholder="例如：夜间高速长途驾驶，驾驶员连续驾驶 3 小时，车内光线较暗。"></textarea>
+
+        <fieldset>
+          <legend>分析维度</legend>
+          <label class="check-row"><input type="checkbox" name="dimension" value="眼睛状态" checked />眼睛状态</label>
+          <label class="check-row"><input type="checkbox" name="dimension" value="嘴部与打哈欠" checked />嘴部与打哈欠</label>
+          <label class="check-row"><input type="checkbox" name="dimension" value="头部姿态" checked />头部姿态</label>
+          <label class="check-row"><input type="checkbox" name="dimension" value="表情疲劳感" checked />表情疲劳感</label>
+          <label class="check-row"><input type="checkbox" name="dimension" value="身体坐姿" checked />身体坐姿</label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" id="analyzeBtn">
+            <i data-lucide="scan-face"></i>
+            开始分析
+          </button>
+          <button type="button" class="secondary" id="exampleBtn">
+            <i data-lucide="wand-2"></i>
+            填入场景
+          </button>
+        </div>
+
+        <div class="loading" id="loading">
+          <span class="spinner" aria-hidden="true"></span>
+          正在调用 Qwen-VL 生成疲劳风险报告...
+        </div>
+        <div class="error" id="errorBox" role="alert"></div>
+      </form>
+
+      <section class="panel report-panel" aria-label="分析结果">
+        <div class="panel-head">
+          <div>
+            <p class="section-kicker">Report</p>
+            <h2>智能体输出</h2>
+          </div>
+          <button type="button" class="icon-button" id="copyBtn" title="复制报告">
+            <i data-lucide="copy"></i>
+          </button>
+        </div>
+
+        <div class="preview-area">
+          <div class="preview-empty" id="previewEmpty">
+            <i data-lucide="camera"></i>
+            <span>上传图片后在这里预览</span>
+          </div>
+          <img id="imagePreview" alt="驾驶员画面预览" />
+        </div>
+
+        <div class="report-empty" id="reportEmpty">
+          <h3>等待分析</h3>
+          <p>上传驾驶员画面并输入 API Key 后，系统会输出疲劳等级、可见证据、风险原因和安全建议。</p>
+        </div>
+
+        <article class="report hidden" id="report">
+          <div class="risk-summary">
+            <div>
+              <p class="section-kicker">Fatigue Level</p>
+              <h3 id="fatigueLevel">无法判断</h3>
+              <p id="confidenceText">置信度：-</p>
+            </div>
+            <div class="score-ring" id="scoreRing" aria-label="风险评分">
+              <span id="riskScore">--</span>
+            </div>
+          </div>
+
+          <div class="meter" aria-hidden="true">
+            <div id="meterFill"></div>
+          </div>
+
+          <div class="feature-grid" id="featureGrid"></div>
+
+          <section class="result-block">
+            <h4>风险依据</h4>
+            <ul id="reasonList"></ul>
+          </section>
+
+          <section class="result-block">
+            <h4>安全建议</h4>
+            <ul id="suggestionList"></ul>
+          </section>
+
+          <section class="result-block muted-block">
+            <h4>限制说明</h4>
+            <p id="limitationsText"></p>
+          </section>
+        </article>
+
+        <details class="raw-response hidden" id="rawResponse">
+          <summary>查看模型原始回复</summary>
+          <pre id="rawText"></pre>
+        </details>
+      </section>
+    </section>
+
+    <section class="workflow" aria-label="智能体工作流">
+      <div>
+        <span>1</span>
+        <strong>图像输入</strong>
+        <p>上传驾驶员面部和姿态画面。</p>
+      </div>
+      <div>
+        <span>2</span>
+        <strong>视觉理解</strong>
+        <p>Qwen-VL 提取眼睛、嘴部、表情、姿态线索。</p>
+      </div>
+      <div>
+        <span>3</span>
+        <strong>风险归纳</strong>
+        <p>按预设维度生成结构化疲劳等级。</p>
+      </div>
+      <div>
+        <span>4</span>
+        <strong>安全报告</strong>
+        <p>输出可解释依据和驾驶安全建议。</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
