@@ -3,6 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FatigueDrive-Agent 项目简介</title>
+  <link rel="stylesheet" href="intro-effect.css" />
+</head>
+<body>
+  <main class="intro">
+    <div class="backdrop" aria-hidden="true"></div>
+
+    <section class="hero" aria-label="项目简介">
+      <p class="kicker">AI4S 课程大作业</p>
+      <h1>FatigueDrive-Agent</h1>
+      <p class="subtitle">基于 Qwen-VL 的疲劳驾驶多模态识别智能体</p>
+
+      <div class="divider"></div>
+
+      <div class="content-row">
+        <div class="summary">
+          <h2>面向驾驶安全的视觉智能体</h2>
+          <p>
+            系统通过驾驶员图像输入，调用阿里云百炼 Qwen-VL 进行视觉理解，
+            将眼睛、嘴部、头部姿态、表情与身体坐姿转化为可解释的疲劳风险报告。
+          </p>
+        </div>
+
+        <div class="capabilities" aria-label="核心能力">
+          <strong>核心能力</strong>
+          <ul>
+            <li>驾驶员图像上传与多模态视觉理解</li>
+            <li>闭眼、打哈欠、低头、表情与坐姿综合分析</li>
+            <li>正常、轻度、中度、高风险分级判断</li>
+            <li>输出风险依据、置信度、限制说明和安全建议</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <a class="primary-action" href="index.html">进入识别工作台</a>
+        <span class="meta">LLM + Vision + Rules + Safety Report</span>
+      </div>
+    </section>
+
+    <footer>
+      Powered by 阿里云百炼 Qwen-VL ｜ AI4S 智能体应用课程项目
+    </footer>
+  </main>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FatigueDrive-Agent</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
